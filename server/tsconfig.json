@@ -1,0 +1,36 @@
+{
+  "compilerOptions": {
+    // File Output
+    "outDir": "./dist",
+
+    // Module / Environment
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "types": ["node"],             // Node types for fs, path, etc.
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+
+    // Source Maps / Declarations
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
+
+    // Strict Type Checking
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "skipLibCheck": true,
+
+    // JSX (if you have React)
+    "jsx": "react-jsx",
+
+    // Module/Import Checks
+    "isolatedModules": true,
+    "noUncheckedSideEffectImports": true,
+    "moduleDetection": "force"
+  },
+  "include": ["src/**/*", "src/data/**/*.json", "prisma/**/*"]
+}
