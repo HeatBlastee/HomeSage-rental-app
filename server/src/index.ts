@@ -11,6 +11,7 @@ import managerRoutes from "./routes/managerRoutes";
 import propertyRoutes from "./routes/propertyRoutes";
 import leaseRoutes from "./routes/leaseRoutes";
 import applicationRoutes from "./routes/applicationRoutes";
+import geocodeRouter from "./routes/searchRoutes";
 
 /* CONFIGURATIONS */
 dotenv.config();
@@ -32,6 +33,8 @@ app.use("/properties", propertyRoutes);
 app.use("/leases", leaseRoutes);
 app.use("/tenants", authMiddleware(["tenant"]), tenantRoutes);
 app.use("/managers", authMiddleware(["manager"]), managerRoutes);
+app.use("/api/geocode", geocodeRouter);
+
 /* SERVER */
 const port = Number(process.env.PORT) || 3002;
 app.listen(port, "0.0.0.0", () => {

@@ -45,7 +45,10 @@ const SearchPage = () => {
                 height: `calc(100vh - ${NAVBAR_HEIGHT}px)`,
             }}
         >
-            <FiltersBar />
+            <div className="relative z-50">
+                <FiltersBar />
+            </div>
+
             <div className="flex justify-between flex-1 overflow-hidden gap-3 mb-5">
                 <div
                     className={`h-full overflow-auto transition-all duration-300 ease-in-out ${isFiltersFullOpen

@@ -53,6 +53,8 @@ const FiltersBar = () => {
         router.push(`${pathname}?${updatedSearchParams.toString()}`);
     });
 
+    
+
     const handleFilterChange = (
         key: string,
         value: any,
@@ -78,48 +80,25 @@ const FiltersBar = () => {
         updateURL(newFilters);
     };
 
-    // ---------- Replaced Mapbox geocoding with Nominatim (OpenStreetMap) ----------
     const handleLocationSearch = async () => {
         const q = (searchInput || "").trim();
         if (!q) return;
 
         try {
-            // Nominatim search endpoint (format=json). limit=1 for single result.
-            // We include a small 'User-Agent' header as recommended by the Nominatim usage policy.
-            const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(
-                q
-            )}`;
-
-            const response = await fetch(url, {
-                headers: {
-                    // polite header — if you have your own domain include it here
-                    "User-Agent": "YourAppName/1.0 (your.email@example.com)",
-                    "Accept-Language": "en",
-                },
-            });
-
-            if (!response.ok) {
-                console.error("Geocoding error:", response.statusText);
-                return;
-            }
-
+            const response = await fetch(`http://localhost:3001/api/geocode?q=${encodeURIComponent(q)}`);
             const results = await response.json();
+
             if (Array.isArray(results) && results.length > 0) {
-                // Nominatim returns { lat: "xx.x", lon: "yy.y", display_name, ... }
                 const best = results[0];
                 const lat = Number(best.lat);
                 const lon = Number(best.lon);
 
-                // Keep same [lng, lat] shape your app expects
                 dispatch(
                     setFilters({
                         location: q,
                         coordinates: [lon, lat],
                     })
                 );
-
-                // Also update URL & state via handleFilterChange if you'd prefer:
-                // handleFilterChange("coordinates", [lon, lat], null);
             } else {
                 console.warn("No location results for:", q);
             }
@@ -127,10 +106,10 @@ const FiltersBar = () => {
             console.error("Error searching location:", err);
         }
     };
-    // ---------------------------------------------------------------------------
+
 
     return (
-        <div className="flex justify-between items-center w-full py-5">
+        <div className="flex justify-between items-center w-full py-5 z-50">
             {/* Filters */}
             <div className="flex justify-between items-center gap-4 p-2">
                 {/* All Filters */}
@@ -177,7 +156,7 @@ const FiltersBar = () => {
                                 {formatPriceValue(filters.priceRange[0], true)}
                             </SelectValue>
                         </SelectTrigger>
-                        <SelectContent className="bg-white">
+                        <SelectContent className="bg-white" >
                             <SelectItem value="any">Any Min Price</SelectItem>
                             {[500, 1000, 1500, 2000, 3000, 5000, 10000].map((price) => (
                                 <SelectItem key={price} value={price.toString()}>

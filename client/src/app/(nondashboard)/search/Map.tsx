@@ -1,6 +1,6 @@
 "use client";
 import React, { useMemo } from "react";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useAppSelector } from "@/state/redux";
@@ -56,7 +56,6 @@ function parseCoords(raw: any): [number, number] | null {
 const Map = () => {
     const filters = useAppSelector((state) => state.global.filters);
     const { data: properties, isLoading, isError } = useGetPropertiesQuery(filters);
-
     const itemsWithPos = useMemo(() => {
         if (!properties) return [];
         return properties
@@ -71,14 +70,16 @@ const Map = () => {
             .filter(Boolean) as { property: Property; position: [number, number] }[];
     }, [properties]);
 
+    
+
+
     const center = useMemo<[number, number]>(() => {
         if (filters?.coordinates) {
             const fc = filters.coordinates;
             if (Array.isArray(fc) && fc.length >= 2) {
                 const a = Number(fc[0]),
                     b = Number(fc[1]);
-                if (a >= -90 && a <= 90 && b >= -180 && b <= 180) return [a, b];
-                if (b >= -90 && b <= 90 && a >= -180 && a <= 180) return [b, a];
+                return [b, a];
             }
         }
 
@@ -88,16 +89,30 @@ const Map = () => {
         return [avgLat, avgLon];
     }, [filters.coordinates, itemsWithPos]);
 
+    const MapUpdater = ({ center }: { center: [number, number] }) => {
+        const map = useMap();
+        React.useEffect(() => {
+            if (center) {
+                map.flyTo(center, 13, { duration: 1.5 }); // Smooth transition
+            }
+        }, [center, map]);
+
+        return null;
+    };
+    
+
     if (isLoading) return <>Loading map...</>;
     if (isError || !properties) return <div>Failed to fetch properties</div>;
 
     return (
-        <div className="basis-5/12 grow relative rounded-xl h-[600px]">
+        <div className="basis-5/12 grow relative rounded-xl h-[600px] z-10">
             <MapContainer center={center} zoom={13} style={{ height: "100%", width: "100%" }} scrollWheelZoom>
                 <TileLayer
                     attribution='&copy; OpenStreetMap contributors'
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
+
+                <MapUpdater center={center} />
 
                 {itemsWithPos.map(({ property, position }) => (
                     <Marker key={property.id} position={position}>
@@ -113,6 +128,7 @@ const Map = () => {
                     </Marker>
                 ))}
             </MapContainer>
+
         </div>
     );
 };

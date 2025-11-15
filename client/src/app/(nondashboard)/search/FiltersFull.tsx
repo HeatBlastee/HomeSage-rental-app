@@ -18,6 +18,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
 const FiltersFull = () => {
     const dispatch = useDispatch();
@@ -64,25 +65,32 @@ const FiltersFull = () => {
     };
 
     const handleLocationSearch = async () => {
-        try {
-            const response = await fetch(
-                `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-                    localFilters.location
-                )}.json?access_token=${process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
-                }&fuzzyMatch=true`
-            );
-            const data = await response.json();
-            if (data.features && data.features.length > 0) {
-                const [lng, lat] = data.features[0].center;
-                setLocalFilters((prev) => ({
-                    ...prev,
-                    coordinates: [lng, lat],
-                }));
-            }
-        } catch (err) {
-            console.error("Error search location:", err);
-        }
+        const q = localFilters.location;
+          try {
+              const response = await fetch(`http://localhost:3001/api/geocode?q=${encodeURIComponent(q)}`);
+                     const results = await response.json();
+         
+                     if (Array.isArray(results) && results.length > 0) {
+                         const best = results[0];
+                         const lat = Number(best.lat);
+                         const lon = Number(best.lon);
+         
+                         dispatch(
+                             setFilters({
+                                 location: q,
+                                 coordinates: [lon, lat],
+                             })
+                         );
+                     } else {
+                         console.warn("No location results for:", q);
+                         
+                     }
+                 } catch (err) {
+              console.error("Error searching location:", err);
+              toast("Sorry! Place cannot be found due to some server issue")
+                 }
     };
+
 
     if (!isFiltersFullOpen) return null;
 
@@ -95,7 +103,7 @@ const FiltersFull = () => {
                     <div className="flex items-center">
                         <Input
                             placeholder="Enter location"
-                            value={filters.location}
+                            value={localFilters.location}
                             onChange={(e) =>
                                 setLocalFilters((prev) => ({
                                     ...prev,
