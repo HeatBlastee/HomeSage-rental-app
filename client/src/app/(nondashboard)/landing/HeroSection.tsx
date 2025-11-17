@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { setFilters } from "@/state";
 import { toast } from "sonner";
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 const HeroSection = () => {
     const dispatch = useDispatch();
     const [searchQuery, setSearchQuery] = useState("");
@@ -20,7 +21,7 @@ const HeroSection = () => {
         const q = searchQuery.trim();
         if (!q) return;
         try {
-            const response = await fetch(`http://localhost:3001/api/geocode?q=${encodeURIComponent(q)}`);
+            const response = await fetch(`${BACKEND_URL}/api/geocode?q=${encodeURIComponent(q)}`);
             const results = await response.json();
 
             if (Array.isArray(results) && results.length > 0) {

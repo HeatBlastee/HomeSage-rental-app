@@ -106,7 +106,7 @@ const Map = () => {
 
     return (
         <div className="basis-5/12 grow relative rounded-xl h-[600px] z-10">
-            <MapContainer center={center} zoom={13} style={{ height: "100%", width: "100%" }} scrollWheelZoom>
+            <MapContainer key={center.join(",")} center={center} zoom={13} style={{ height: "100%", width: "100%" }} scrollWheelZoom>
                 <TileLayer
                     attribution='&copy; OpenStreetMap contributors'
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

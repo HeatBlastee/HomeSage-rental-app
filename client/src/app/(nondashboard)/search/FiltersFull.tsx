@@ -20,6 +20,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 const FiltersFull = () => {
     const dispatch = useDispatch();
     const router = useRouter();
@@ -67,7 +68,7 @@ const FiltersFull = () => {
     const handleLocationSearch = async () => {
         const q = localFilters.location;
           try {
-              const response = await fetch(`http://localhost:3001/api/geocode?q=${encodeURIComponent(q)}`);
+              const response = await fetch(`${BACKEND_URL}/api/geocode?q=${encodeURIComponent(q)}`);
                      const results = await response.json();
          
                      if (Array.isArray(results) && results.length > 0) {

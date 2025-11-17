@@ -19,11 +19,12 @@ router.get("/", async (req, res) => {
             },
         });
 
-        if (!response.ok) {
-            return res.status(500).json({ error: "Geocoding API error" });
-        }
+        // if (!response.ok) {
+        //     return res.status(500).json({ error: response.error ||"Geocoding API error" });
+        // }
 
         const data = await response.json();
+        console.log("DATA: ", data);
         res.json(data);
     } catch (err) {
         console.error(err);

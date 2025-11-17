@@ -27,7 +27,7 @@ import { PropertyTypeIcons } from "@/lib/constants";
  * Nominatim is free but rate-limited and intended for light usage. Consider a paid provider
  * for production traffic.
  */
-
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 const FiltersBar = () => {
     const dispatch = useDispatch();
     const router = useRouter();
@@ -85,7 +85,7 @@ const FiltersBar = () => {
         if (!q) return;
 
         try {
-            const response = await fetch(`http://localhost:3001/api/geocode?q=${encodeURIComponent(q)}`);
+            const response = await fetch(`${BACKEND_URL}/api/geocode?q=${encodeURIComponent(q)}`);
             const results = await response.json();
 
             if (Array.isArray(results) && results.length > 0) {
