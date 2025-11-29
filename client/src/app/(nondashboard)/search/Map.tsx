@@ -1,5 +1,5 @@
 "use client";
-import React, { useMemo } from "react";
+import React, { useMemo, useRef, useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
@@ -54,8 +54,14 @@ function parseCoords(raw: any): [number, number] | null {
 }
 
 const Map = () => {
+    const [mapId] = useState(() => `map-${Math.random().toString(36).substr(2, 9)}`);
+    const [mounted, setMounted] = useState(false);
     const filters = useAppSelector((state) => state.global.filters);
     const { data: properties, isLoading, isError } = useGetPropertiesQuery(filters);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
     const itemsWithPos = useMemo(() => {
         if (!properties) return [];
         return properties
@@ -103,10 +109,16 @@ const Map = () => {
 
     if (isLoading) return <>Loading map...</>;
     if (isError || !properties) return <div>Failed to fetch properties</div>;
+    if (!mounted) return null;
 
     return (
-        <div className="basis-5/12 grow relative rounded-xl h-[600px] z-10">
-            <MapContainer key={center.join(",")} center={center} zoom={13} style={{ height: "100%", width: "100%" }} scrollWheelZoom>
+        <div className="basis-5/12 grow relative rounded-xl h-[600px] z-10" key={mapId}>
+            <MapContainer 
+                center={center} 
+                zoom={13} 
+                style={{ height: "100%", width: "100%" }} 
+                scrollWheelZoom
+            >
                 <TileLayer
                     attribution='&copy; OpenStreetMap contributors'
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

@@ -57,6 +57,23 @@ enum ApplicationStatus {
   Approved
 }
 
+enum EmploymentStatus {
+  FullTime
+  PartTime
+  SelfEmployed
+  Contract
+  Unemployed
+  Retired
+  Student
+}
+
+enum BackgroundCheckStatus {
+  NotStarted
+  InProgress
+  Completed
+  Failed
+}
+
 enum PaymentStatus {
   Pending
   Paid
@@ -131,19 +148,106 @@ model Location {
 
 model Application {
   id              Int               @id @default(autoincrement())
-  applicationDate DateTime
-  status          ApplicationStatus
+  applicationDate DateTime          @default(now())
+  status          ApplicationStatus @default(Pending)
   propertyId      Int
   tenantCognitoId String
+  
+  // Basic Contact Information
   name            String
   email           String
   phoneNumber     String
   message         String?
+  
+  // Extended Personal Information
+  firstName       String?
+  lastName        String?
+  phone           String?
+  dateOfBirth     DateTime?
+  
+  // Current Address Information
+  currentAddress  String?
+  currentCity     String?
+  currentState    String?
+  currentZip      String?
+  moveInDate      DateTime?
+  
+  // Employment Information
+  employmentStatus      String?
+  employer              String?
+  occupation            String?
+  annualIncome          Float?
+  employmentLength      String?
+  
+  // Legacy Employment Fields (keeping for backward compatibility)
+  employerName          String?
+  employerPhone         String?
+  jobTitle              String?
+  employmentStartDate   DateTime?
+  monthlyIncome         Float?
+  additionalIncome      Float?
+  additionalIncomeSource String?
+  
+  // Previous Rental History
+  previousLandlordName   String?
+  previousLandlordPhone  String?
+  currentLandlordName    String?
+  currentLandlordPhone   String?
+  currentRentAmount      Float?
+  reasonForLeaving       String?
+  yearsAtCurrentAddress  Float?
+  
+  // Emergency Contact & References
+  emergencyContactName         String?
+  emergencyContactPhone        String?
+  emergencyContactRelationship String?
+  emergencyContactRelation     String?
+  
+  // References
+  reference1Name        String?
+  reference1Phone       String?
+  reference1Relation    String?
+  reference2Name        String?
+  reference2Phone       String?
+  reference2Relation    String?
+  
+  // Additional Information
+  numberOfOccupants     Int?
+  hasPets               Boolean?          @default(false)
+  petDetails            String?
+  hasVehicles           Boolean?          @default(false)
+  hasVehicle            Boolean?          @default(false)
+  vehicleDetails        String?
+  
+  // Background & Screening
+  hasEvictionHistory    Boolean?          @default(false)
+  evictionDetails       String?
+  hasCriminalHistory    Boolean?          @default(false)
+  criminalDetails       String?
+  additionalNotes       String?
+  
+  backgroundCheckStatus BackgroundCheckStatus @default(NotStarted)
+  backgroundCheckDate   DateTime?
+  creditScore           Int?
+  
+  // Document URLs (stored in cloud storage)
+  documentUrls          String[]          @default([])
+  
+  // Manager Review
+  reviewNotes           String?
+  reviewedBy            String?
+  reviewedAt            DateTime?
+  rejectionReason       String?
+  
   leaseId         Int?              @unique
 
   property Property @relation(fields: [propertyId], references: [id])
   tenant   Tenant   @relation(fields: [tenantCognitoId], references: [cognitoId])
   lease    Lease?   @relation(fields: [leaseId], references: [id])
+  
+  @@index([propertyId])
+  @@index([tenantCognitoId])
+  @@index([status])
 }
 
 model Lease {

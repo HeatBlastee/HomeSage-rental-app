@@ -65,31 +65,51 @@ const FiltersFull = () => {
         }));
     };
 
+    const [isSearching, setIsSearching] = useState(false);
+
     const handleLocationSearch = async () => {
         const q = localFilters.location;
-          try {
-              const response = await fetch(`${BACKEND_URL}/api/geocode?q=${encodeURIComponent(q)}`);
-                     const results = await response.json();
-         
-                     if (Array.isArray(results) && results.length > 0) {
-                         const best = results[0];
-                         const lat = Number(best.lat);
-                         const lon = Number(best.lon);
-         
-                         dispatch(
-                             setFilters({
-                                 location: q,
-                                 coordinates: [lon, lat],
-                             })
-                         );
-                     } else {
-                         console.warn("No location results for:", q);
-                         
-                     }
-                 } catch (err) {
-              console.error("Error searching location:", err);
-              toast("Sorry! Place cannot be found due to some server issue")
-                 }
+        if (!q || q.trim() === "") {
+            toast.error("Please enter a location to search");
+            return;
+        }
+
+        setIsSearching(true);
+        try {
+            const response = await fetch(`${BACKEND_URL}/api/geocode?q=${encodeURIComponent(q)}`);
+            
+            if (!response.ok) {
+                throw new Error(`Server responded with ${response.status}`);
+            }
+
+            const results = await response.json();
+
+            if (Array.isArray(results) && results.length > 0) {
+                const best = results[0];
+                const lat = Number(best.lat);
+                const lon = Number(best.lon);
+
+                if (isNaN(lat) || isNaN(lon)) {
+                    toast.error("Invalid location coordinates received");
+                    return;
+                }
+
+                dispatch(
+                    setFilters({
+                        location: q,
+                        coordinates: [lon, lat],
+                    })
+                );
+                toast.success(`Location found: ${best.display_name || q}`);
+            } else {
+                toast.error("Location not found. Please try a different search term.");
+            }
+        } catch (err) {
+            console.error("Error searching location:", err);
+            toast.error("Failed to search location. Please try again.");
+        } finally {
+            setIsSearching(false);
+        }
     };
 
 
@@ -115,9 +135,14 @@ const FiltersFull = () => {
                         />
                         <Button
                             onClick={handleLocationSearch}
+                            disabled={isSearching}
                             className="rounded-r-xl rounded-l-none border-l-none border-black shadow-none border hover:bg-primary-700 hover:text-primary-50"
                         >
-                            <Search className="w-4 h-4" />
+                            {isSearching ? (
+                                <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                            ) : (
+                                <Search className="w-4 h-4" />
+                            )}
                         </Button>
                     </div>
                 </div>

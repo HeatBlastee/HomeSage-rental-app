@@ -21,6 +21,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { PropertyTypeIcons } from "@/lib/constants";
+import { toast } from "sonner";
 
 /**
  * NOTE: This version uses OpenStreetMap / Nominatim for geocoding instead of Mapbox.
@@ -38,6 +39,7 @@ const FiltersBar = () => {
     );
     const viewMode = useAppSelector((state) => state.global.viewMode);
     const [searchInput, setSearchInput] = useState(filters.location);
+    const [isSearching, setIsSearching] = useState(false);
 
     const updateURL = debounce((newFilters: FiltersState) => {
         const cleanFilters = cleanParams(newFilters);
@@ -82,10 +84,19 @@ const FiltersBar = () => {
 
     const handleLocationSearch = async () => {
         const q = (searchInput || "").trim();
-        if (!q) return;
+        if (!q) {
+            toast.error("Please enter a location to search");
+            return;
+        }
 
+        setIsSearching(true);
         try {
             const response = await fetch(`${BACKEND_URL}/api/geocode?q=${encodeURIComponent(q)}`);
+            
+            if (!response.ok) {
+                throw new Error(`Server responded with ${response.status}`);
+            }
+
             const results = await response.json();
 
             if (Array.isArray(results) && results.length > 0) {
@@ -93,17 +104,26 @@ const FiltersBar = () => {
                 const lat = Number(best.lat);
                 const lon = Number(best.lon);
 
+                if (isNaN(lat) || isNaN(lon)) {
+                    toast.error("Invalid location coordinates received");
+                    return;
+                }
+
                 dispatch(
                     setFilters({
                         location: q,
                         coordinates: [lon, lat],
                     })
                 );
+                toast.success(`Location found: ${best.display_name || q}`);
             } else {
-                console.warn("No location results for:", q);
+                toast.error("Location not found. Please try a different search term.");
             }
         } catch (err) {
             console.error("Error searching location:", err);
+            toast.error("Failed to search location. Please try again.");
+        } finally {
+            setIsSearching(false);
         }
     };
 
@@ -135,10 +155,15 @@ const FiltersBar = () => {
                     />
                     <Button
                         onClick={handleLocationSearch}
+                        disabled={isSearching}
                         className={`rounded-r-xl rounded-l-none border-l-none border-primary-400 shadow-none 
               border hover:bg-primary-700 hover:text-primary-50`}
                     >
-                        <Search className="w-4 h-4" />
+                        {isSearching ? (
+                            <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                        ) : (
+                            <Search className="w-4 h-4" />
+                        )}
                     </Button>
                 </div>
 

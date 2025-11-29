@@ -14,14 +14,24 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 const HeroSection = () => {
     const dispatch = useDispatch();
     const [searchQuery, setSearchQuery] = useState("");
+    const [isSearching, setIsSearching] = useState(false);
     const router = useRouter();
 
     const handleLocationSearch = async () => {
-       
         const q = searchQuery.trim();
-        if (!q) return;
+        if (!q) {
+            toast.error("Please enter a location to search");
+            return;
+        }
+
+        setIsSearching(true);
         try {
             const response = await fetch(`${BACKEND_URL}/api/geocode?q=${encodeURIComponent(q)}`);
+            
+            if (!response.ok) {
+                throw new Error(`Server responded with ${response.status}`);
+            }
+
             const results = await response.json();
 
             if (Array.isArray(results) && results.length > 0) {
@@ -29,12 +39,18 @@ const HeroSection = () => {
                 const lat = Number(best.lat);
                 const lon = Number(best.lon);
 
+                if (isNaN(lat) || isNaN(lon)) {
+                    toast.error("Invalid location coordinates received");
+                    return;
+                }
+
                 dispatch(
                     setFilters({
                         location: q,
                         coordinates: [lon, lat],
                     })
                 );
+                
                 const params = new URLSearchParams({
                     location: q,
                     lat: lat.toString(),
@@ -42,12 +58,13 @@ const HeroSection = () => {
                 });
                 router.push(`/search?${params.toString()}`);
             } else {
-                console.warn("No location results for:", q);
-
+                toast.error("Location not found. Please try a different search term.");
             }
         } catch (err) {
             console.error("Error searching location:", err);
-            toast("Sorry! Place cannot be found due to some server issue")
+            toast.error("Failed to search location. Please try again.");
+        } finally {
+            setIsSearching(false);
         }
     };
 
@@ -87,9 +104,14 @@ const HeroSection = () => {
                             />
                             <Button
                                 onClick={handleLocationSearch}
-                                className="bg-secondary-500 text-white rounded-none rounded-r-xl border-none hover:bg-secondary-600 h-12"
+                                disabled={isSearching}
+                                className="bg-secondary-500 text-white rounded-none rounded-r-xl border-none hover:bg-secondary-600 h-12 min-w-[100px]"
                             >
-                                Search
+                                {isSearching ? (
+                                    <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
+                                ) : (
+                                    "Search"
+                                )}
                             </Button>
                         </div>
                     </div>
